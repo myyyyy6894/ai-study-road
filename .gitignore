@@ -1,0 +1,21 @@
+# 环境与密钥
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# 运行时产物
+data/uploads/*
+data/index/*
+!data/uploads/.gitkeep
+!data/index/.gitkeep
+
+# 评估产物
+eval/*.json
+eval/*.md
+
+# 编辑器
+.idea/
+.vscode/
+.DS_Store
