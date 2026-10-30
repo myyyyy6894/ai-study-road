@@ -520,6 +520,18 @@ class VectorStore:
             )
 
 
+    def remove_doc(self,doc_id:str)->int:
+        # 注意是 self.chunks（属性），不是 self, chunks（两个参数）
+        keep = [i for i,chunk in enumerate(self.chunks) if chunk["doc_id"] != doc_id]
+        removed = len(self.chunks) -len(keep)
+
+        if removed:
+            self.vectors = self.vectors[keep]
+            self.chunks = [self.chunks[i] for i in keep]
+
+        return removed
+
+
 # ============================================================
 # 以下是测试代码。
 #

@@ -22,3 +22,29 @@ class Usage(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     usage: Usage | None = None
+
+
+class RAGChatRequest(BaseModel):
+    session_id: str = Field(default="default", description="会话 ID，相同 ID 共享历史")
+    question: str = Field(min_length=1, max_length=2000)
+    top_k: int = Field(default=4, ge=1, le=10, description="检索片段数")
+    enable_rewrite: bool = Field(default=True, description="是否做多轮 query 改写")
+
+
+class Citation(BaseModel):
+    index: int          # 对应回答里的 [1]
+    chunk_id: str
+    filename: str
+    page: int | None = None
+    text: str
+    score: float
+
+
+class RAGChatResponse(BaseModel):
+    session_id: str
+    answer: str
+    citations: list[Citation]
+    retrieved: int
+    # 只有发生改写时才返回，方便前端显示"我理解成了……"
+    rewritten_question: str | None = None
+    usage: Usage | None = None

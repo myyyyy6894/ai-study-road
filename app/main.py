@@ -5,15 +5,33 @@ Day 1 只挂一个最小接口，验证「HTTP → Pydantic → LLM → JSON」�
 """
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.llm import chat
 from app.schemas import ChatRequest, ChatResponse, Usage
+from app.api.chat import router as chat_router
+from app.api.documents import router as documents_router
+
 
 app = FastAPI(
     title="RAG 知识库问答 Demo",
     version="0.1.0",
     description="Day 1：LLM 调用与最小接口",
 )
+
+
+
+app.include_router(documents_router)
+app.include_router(chat_router)
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+@app.get("/", include_in_schema=False)
+async def index() -> FileResponse:
+    # include_in_schema=False：给人看的页面，不必出现在 /docs 里
+    return FileResponse("app/static/index.html")
 
 SYSTEM = "你是一个简洁的中文技术助手，回答控制在 3 句话以内。"
 

@@ -54,3 +54,31 @@ async def chat(
         temperature=settings.llm_temperature if temperature is None else temperature,
         max_tokens=settings.llm_max_tokens if max_tokens is None else max_tokens,
     )
+
+
+async def chat_stream(
+    messages: list[dict],
+    *,
+    model: str | None = None,
+    temperature: float | None = None,
+    max_tokens: int | None = None,
+):
+    """流式对话：每收到一小段就 yield 出去。
+
+    注意这是 async generator（用 yield 而不是 return），
+    调用方要写 `async for delta in chat_stream(...)`。
+    """
+    stream = await get_client().chat.completions.create(
+        model=model or settings.llm_model,
+        messages=messages,
+        temperature=settings.llm_temperature if temperature is None else temperature,
+        max_tokens=settings.llm_max_tokens if max_tokens is None else max_tokens,
+        stream=True,
+    )
+
+    async for chunk in stream:
+        # 流式响应的结构是 choices[0].delta.content，
+        # 不是 message.content；delta 可能为空（比如只含 role 的首块）
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta

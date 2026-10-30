@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG 知识库问答</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2f3a;
+    --text: #e6e8ec;
+    --muted: #8b93a1;
+    --accent: #6ea8fe;
+    --user: #24304a;
+    --answer: #1c2029;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; display: flex;
+    background: var(--bg); color: var(--text);
+    font: 14px/1.6 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  aside {
+    width: 280px; border-right: 1px solid var(--border);
+    background: var(--panel); padding: 16px; overflow-y: auto;
+  }
+  aside h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+  .doc {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; margin-bottom: 8px; font-size: 13px;
+  }
+  .doc .meta { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .doc button {
+    float: right; background: none; border: none;
+    color: #e06c75; cursor: pointer; font-size: 12px;
+  }
+  main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #chat { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .msg { max-width: 780px; margin: 0 auto 18px; }
+  .msg .who { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .bubble { padding: 10px 14px; border-radius: 10px; white-space: pre-wrap; word-break: break-word; }
+  .user .bubble { background: var(--user); }
+  .bot .bubble { background: var(--answer); border: 1px solid var(--border); }
+  .cites { margin-top: 8px; }
+  .cites summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+  .cite {
+    border-left: 2px solid var(--accent); padding: 6px 10px;
+    margin-top: 8px; font-size: 12px; color: #c3c9d4;
+    background: #14171d; white-space: pre-wrap;
+  }
+  .cite .src { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+  footer { border-top: 1px solid var(--border); padding: 14px 24px; background: var(--panel); }
+  .row { display: flex; gap: 10px; max-width: 780px; margin: 0 auto; }
+  textarea {
+    flex: 1; resize: none; height: 48px; padding: 12px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    font: inherit;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  button.primary {
+    padding: 0 20px; border: none; border-radius: 8px;
+    background: var(--accent); color: #0b1220;
+    font-weight: 600; cursor: pointer;
+  }
+  button.primary:disabled { opacity: .5; cursor: default; }
+  .hint { max-width: 780px; margin: 6px auto 0; color: var(--muted); font-size: 11px; }
+  input[type=file] { display: none; }
+  label.upload {
+    display: block; text-align: center; padding: 10px;
+    border: 1px dashed var(--border); border-radius: 8px;
+    color: var(--muted); cursor: pointer; font-size: 12px; margin-bottom: 14px;
+  }
+  label.upload:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+<aside>
+  <label class="upload">
+    上传文档（PDF / MD / TXT）
+    <input type="file" id="file" accept=".pdf,.md,.txt">
+  </label>
+  <h2>知识库</h2>
+  <div id="docs"></div>
+</aside>
+
+<main>
+  <div id="chat"></div>
+  <footer>
+    <div class="row">
+      <textarea id="q" placeholder="问点什么…（Enter 发送，Shift+Enter 换行）"></textarea>
+      <button class="primary" id="send">发送</button>
+    </div>
+    <div class="hint" id="hint">会话 ID：<span id="sid"></span> · <a href="#" id="reset" style="color:var(--muted)">清空会话</a></div>
+  </footer>
+</main>
+
+<script>
+// 会话 ID：刷新页面就换新的，避免不同会话互相污染
+const sessionId = "s-" + Math.random().toString(36).slice(2, 10);
+document.getElementById("sid").textContent = sessionId;
+
+const chat = document.getElementById("chat");
+const q = document.getElementById("q");
+const sendBtn = document.getElementById("send");
+
+// ---------- 文档管理 ----------
+async function loadDocs() {
+  const res = await fetch("/api/documents");
+  const docs = await res.json();
+  const box = document.getElementById("docs");
+  box.innerHTML = docs.length ? "" : '<div class="meta" style="color:#8b93a1;font-size:12px">还没有文档</div>';
+  for (const d of docs) {
+    const el = document.createElement("div");
+    el.className = "doc";
+    el.innerHTML = `<button data-id="${d.doc_id}">删除</button>
+      <div>${d.filename}</div>
+      <div class="meta">${d.num_chunks} 个片段</div>`;
+    box.appendChild(el);
+  }
+  box.querySelectorAll("button[data-id]").forEach(btn => {
+    btn.onclick = async () => {
+      const res = await fetch(`/api/documents/${btn.dataset.id}`, { method: "DELETE" });
+      // 后端出错时别静默失败，否则用户会以为"点了没反应"
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert("删除失败：" + (err.detail || res.status));
+      }
+      loadDocs();
+    };
+  });
+}
+
+document.getElementById("file").onchange = async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const form = new FormData();
+  form.append("file", f);
+  const res = await fetch("/api/documents", { method: "POST", body: form });
+  if (!res.ok) {
+    const err = await res.json();
+    alert(err.detail || "上传失败");
+  }
+  e.target.value = "";
+  loadDocs();
+};
+
+// ---------- 聊天 ----------
+function addMsg(role, text) {
+  const wrap = document.createElement("div");
+  wrap.className = `msg ${role}`;
+  wrap.innerHTML = `<div class="who">${role === "user" ? "你" : "助手"}</div>
+                    <div class="bubble"></div>`;
+  wrap.querySelector(".bubble").textContent = text || "";
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+  return wrap.querySelector(".bubble");
+}
+
+function addCitations(bubble, citations, rewritten) {
+  if (!citations.length) return;
+  const box = document.createElement("details");
+  box.className = "cites";
+  box.innerHTML = `<summary>引用 ${citations.length} 条${rewritten ? " · 已改写为：" + rewritten : ""}</summary>`;
+  for (const c of citations) {
+    const el = document.createElement("div");
+    el.className = "cite";
+    el.innerHTML = `<div class="src">[${c.index}] ${c.filename}${c.page ? " 第 " + c.page + " 页" : ""} · 相似度 ${c.score}</div>`;
+    el.appendChild(document.createTextNode(c.text));
+    box.appendChild(el);
+  }
+  bubble.parentElement.appendChild(box);
+}
+
+async function ask() {
+  const question = q.value.trim();
+  if (!question) return;
+  q.value = "";
+  sendBtn.disabled = true;
+
+  addMsg("user", question);
+  const bubble = addMsg("bot", "");
+
+  try {
+    const res = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, question }),
+    });
+
+    // fetch 拿到的不是 JSON，而是一个可读流；要自己按 SSE 格式拆
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE 消息之间用空行分隔；最后一段可能不完整，留在 buffer 里
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop();
+
+      for (const part of parts) {
+        let event = "message", data = "";
+        for (const line of part.split("\n")) {
+          if (line.startsWith("event: ")) event = line.slice(7);
+          else if (line.startsWith("data: ")) data = line.slice(6);
+        }
+        if (!data) continue;
+        const payload = JSON.parse(data);
+
+        if (event === "citations") {
+          addCitations(bubble, payload.citations || [], payload.rewritten_question);
+        } else if (event === "delta") {
+          bubble.textContent += payload.text;
+          chat.scrollTop = chat.scrollHeight;
+        }
+      }
+    }
+  } catch (err) {
+    bubble.textContent = "请求失败：" + err.message;
+  } finally {
+    sendBtn.disabled = false;
+    q.focus();
+  }
+}
+
+sendBtn.onclick = ask;
+q.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    ask();
+  }
+});
+
+document.getElementById("reset").onclick = async (e) => {
+  e.preventDefault();
+  await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
+  chat.innerHTML = "";
+};
+
+loadDocs();
+</script>
+</body>
+</html>
