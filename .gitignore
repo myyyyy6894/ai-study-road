@@ -1,21 +1,25 @@
 # 环境与密钥
 .env
 .venv/
-__pycache__/
+**/__pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
 
-# 运行时产物
-data/uploads/*
-data/index/*
-!data/uploads/.gitkeep
-!data/index/.gitkeep
+# 运行时产物（可通过 scripts/rebuild_index.py 重建）
+rag/data/uploads/*
+rag/data/index/*
+!rag/data/uploads/.gitkeep
+!rag/data/index/.gitkeep
 
-# 评估产物
-eval/*.json
-eval/*.md
+# 评估产物（可通过 eval/run_eval.py 重新生成）
+rag/eval/report_*.md
 
-# 编辑器
+# 个人学习计划（不公开）
+rag/PLAN.md
+rag/CLAUDE.md
+
+# 编辑器与系统
 .idea/
 .vscode/
 .DS_Store

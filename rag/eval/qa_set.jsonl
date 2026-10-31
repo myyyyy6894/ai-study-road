@@ -1,0 +1,25 @@
+{"id": 1, "question": "这个实验的网格世界是几行几列？", "gold_answer": "5 行 × 12 列", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 2, "question": "起点和终点分别在哪个坐标？", "gold_answer": "起点 [4, 0]，终点 [4, 11]", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 3, "question": "悬崖一共有几个？分布在哪些位置？", "gold_answer": "共 8 个：row 2 的 col 5~6，row 4 的 col 3~8", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 4, "question": "障碍物有几个，分别在什么位置？", "gold_answer": "4 个：(1,3), (1,8), (2,3), (2,8)", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 5, "question": "普通移动、碰边界、掉入悬崖、到达终点分别给多少奖励？", "gold_answer": "普通移动 -1，碰边界 -5，掉入悬崖 -100，到达终点 +50", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 6, "question": "Q-learning 的更新公式是什么？", "gold_answer": "Q(s,a) ← Q(s,a) + α[r + γ·max Q(s',a') - Q(s,a)]", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 7, "question": "学习率 α 设置成了多少？", "gold_answer": "α = 0.1", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 8, "question": "折扣因子 γ 设置成了多少？", "gold_answer": "γ = 0.9", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 9, "question": "探索率 ε 是多少？", "gold_answer": "ε = 0.1", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 10, "question": "训练了多少个 episode？每个回合最多多少步？", "gold_answer": "500 个 episode，每回合最多 200 步", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 11, "question": "随机种子 seed 的取值是多少？", "gold_answer": "42", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 12, "question": "训练后贪心策略的到达终点率和平均奖励是多少？", "gold_answer": "到达终点率 100%，平均累计奖励 +38.00", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 13, "question": "Q 表是用什么数据结构实现的？", "gold_answer": "三维数组 Q[5][12][4]，初始化为全 0", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 14, "question": "随机策略的平均累计奖励和到达终点率是多少？", "gold_answer": "平均累计奖励 -782.88，到达终点率 1.0%", "source_doc": "强化学习大作业.md", "type": "in_scope"}
+{"id": 15, "question": "条件概率的计算公式是什么？", "gold_answer": "P(a|b) = P(a∧b) / P(b)，要求 P(b) > 0", "source_doc": "第7 讲 不确定性与概率推理_学生.pdf", "type": "in_scope"}
+{"id": 16, "question": "贝叶斯公式怎么写？", "gold_answer": "P(h|e) = P(e|h)P(h) / P(e)", "source_doc": "第7 讲 不确定性与概率推理_学生.pdf", "type": "in_scope"}
+{"id": 17, "question": "先验、似然、后验分别是什么意思？", "gold_answer": "先验 P(h) 是观察证据前对假设的判断；似然 P(e|h) 是假设成立时出现证据的概率；后验 P(h|e) 是观察证据后对假设的判断", "source_doc": "第7 讲 不确定性与概率推理_学生.pdf", "type": "in_scope"}
+{"id": 18, "question": "两个随机变量独立的定义是什么？", "gold_answer": "对所有取值 x、y，都有 P(x,y) = P(x)P(y)", "source_doc": "第7 讲 不确定性与概率推理_学生.pdf", "type": "in_scope"}
+{"id": 19, "question": "条件独立是什么意思？", "gold_answer": "给定某个变量后两个变量独立，例如给定 C 后 T 与 K 条件独立；条件独立不等于无条件独立", "source_doc": "第7 讲 不确定性与概率推理_学生.pdf", "type": "in_scope"}
+{"id": 20, "question": "朴素贝叶斯模型的核心假设是什么？", "gold_answer": "给定类别后，各特征相互条件独立", "source_doc": "第7 讲 不确定性与概率推理_学生.pdf", "type": "in_scope"}
+{"id": 21, "question": "最大期望效用原则是什么？", "gold_answer": "比较各行动可能结果的概率加权效用，选择期望效用最大的行动", "source_doc": "第7 讲 不确定性与概率推理_学生.pdf", "type": "in_scope"}
+{"id": 22, "question": "量子计算机的 Shor 算法是如何分解大整数因子的？", "gold_answer": "文档未涉及", "source_doc": null, "type": "out_of_scope"}
+{"id": 23, "question": "Transformer 的自注意力机制公式是什么？", "gold_answer": "文档未涉及", "source_doc": null, "type": "out_of_scope"}
+{"id": 24, "question": "Docker 容器和虚拟机有什么区别？", "gold_answer": "文档未涉及", "source_doc": null, "type": "out_of_scope"}
+{"id": 25, "question": "用 Python 读取 Excel 文件应该装什么库？", "gold_answer": "文档未涉及", "source_doc": null, "type": "out_of_scope"}
